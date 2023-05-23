@@ -22,18 +22,10 @@ struct QuestionResponse: Codable {
     var results: [Question]
 }
 
-struct Result: Codable, Hashable {
+struct Category: Hashable, Codable {
     var id: Int
     var name: String
-}
-
-struct Category: Hashable, Codable, Equatable {
-    var id: Int
-    var name: String
-    
-    static func == (a: Category, b: Category) -> Bool {
-        return a.id == b.id && a.name == b.name
-    }
+   
 }
 
 struct Question: Codable {
@@ -49,13 +41,14 @@ struct ContentView: View {
     @State var selectedDifficulty: Difficulty = .EASY
     @State var selectedCategory: Category?
     @State var categories = [Category]()
+    @State var categoryStrings = [String]()
     @State var questions = [Question]()
     @State var isQuizViewActive: Bool = false
     
     var body: some View {
         NavigationView {
             ZStack {
-//                            Color.blue
+                Color.blue
                 
                 VStack(alignment: .leading, spacing: 4.0) {
                     
@@ -77,6 +70,16 @@ struct ContentView: View {
                     HStack(alignment: .center) {
                         Text("Pick Category")
                         
+/*
+ Af en eller anden grund så vil den her
+ Picker ikke opdatere selectedCategory
+ Jeg mistænker at problemet er i
+ fetchTriviaCategories() hvor selectedAnswer
+ bliver sat til at være 1. element i categories
+ Men hvis jeg fjerner det græder xcode, så jeg
+ er ikke kommet frem til nogen løsning på det
+ */
+                        
                         Picker(selection: $selectedCategory, label: /*@START_MENU_TOKEN@*/Text("Picker")/*@END_MENU_TOKEN@*/) {
                             ForEach(categories, id: \.self) {c in
                                 Text(c.name);
@@ -91,9 +94,6 @@ struct ContentView: View {
                         NavigationLink(destination: QuizView(questions: questions), isActive: $isQuizViewActive) {
                             
                             Button("Go to quiz") {
-                                print("Difficulty: \(selectedDifficulty)")
-                                print("Category: \(selectedCategory!.name)")
-                                
                                 let catId = getCategoryId(category: selectedCategory!)
 
                                 if (catId != nil) {
@@ -143,9 +143,6 @@ struct ContentView: View {
         }
         
         do {
-            /// der bliver hentet data fra url'en som bliver gemt i en tuple
-            /// data er det data vi får og _er så metadata, men da vi ikke
-            /// skal bruge metadata sætter vi en _
             let (data, _) = try await URLSession.shared.data(from: url)
             
             if let decodedResponse = try? JSONDecoder().decode(CategoryResponse.self, from: data) {
@@ -207,133 +204,145 @@ struct QuizView: View {
     
     var body: some View {
         NavigationView() {
-            VStack(spacing: 8.0) {
+            
+            ZStack {
+                Color.blue
+                VStack(spacing: 8.0) {
                     
-                Text("Question \(questionCount + 1)!")
-                    .font(.title)
-                    .fontWeight(.bold)
-                Spacer()
-                
-                VStack(spacing: 24.0) {
+                    Text("Question \(questionCount + 1)!")
+                        .font(.title)
+                        .fontWeight(.bold)
+                    Spacer()
                     
-                    HStack() {
-                        Text("\(questions[questionCount].question)")
-                            .multilineTextAlignment(.center)
-                            .padding(2.0)
-                            .border(/*@START_MENU_TOKEN@*/Color.black/*@END_MENU_TOKEN@*/, width: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/)
-                    }
-                    
-                    if shuffledAnswers.count >= 4 {
+                    VStack(spacing: 24.0) {
                         
                         HStack() {
-                            VStack() {
-                                
-                                Text("1: \(shuffledAnswers[0])")
-                                    .multilineTextAlignment(.center)
-                                    .padding(.all, 2.0)
-                                    .border(/*@START_MENU_TOKEN@*/Color.black/*@END_MENU_TOKEN@*/, width: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/)
-                                    .background(answer1BgColor)
-                                    .onTapGesture {
-                                        selectedAnswer = shuffledAnswers[0]
-                                        answer1BgColor = Color.green
-                                        answer2BgColor = Color.white
-                                        answer3BgColor = Color.white
-                                        answer4BgColor = Color.white
-                                    }
-                                Text("2: \(shuffledAnswers[1])")
-                                    .multilineTextAlignment(.center)
-                                    .padding(.all, 2.0)
-                                    .border(/*@START_MENU_TOKEN@*/Color.black/*@END_MENU_TOKEN@*/, width: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/)
-                                    .background(answer2BgColor)
-                                    .onTapGesture {
-                                        selectedAnswer = shuffledAnswers[1]
-                                        answer1BgColor = Color.white
-                                        answer2BgColor = Color.green
-                                        answer3BgColor = Color.white
-                                        answer4BgColor = Color.white
-                                    }
-                            }
+                            Text("\(questions[questionCount].question)")
+                                .multilineTextAlignment(.center)
+                                .padding(2.0)
                             
-                            VStack() {
-                                Text("3: \(shuffledAnswers[2])")
-                                    .multilineTextAlignment(.center)
-                                    .padding(.all, 2.0)
-                                    .border(/*@START_MENU_TOKEN@*/Color.black/*@END_MENU_TOKEN@*/, width: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/)
-                                    .background(answer3BgColor)
-                                    .onTapGesture {
-                                        selectedAnswer = shuffledAnswers[2]
-                                        answer1BgColor = Color.white
-                                        answer2BgColor = Color.white
-                                        answer3BgColor = Color.green
-                                        answer4BgColor = Color.white
-                                    }
-                                Text("4: \(shuffledAnswers[3])")
-                                    .multilineTextAlignment(.center)
-                                    .padding(.all, 2.0)
-                                    .border(/*@START_MENU_TOKEN@*/Color.black/*@END_MENU_TOKEN@*/, width: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/)
-                                    .background(answer4BgColor)
-                                    .onTapGesture {
-                                        selectedAnswer = shuffledAnswers[3]
-                                        answer1BgColor = Color.white
-                                        answer2BgColor = Color.white
-                                        answer3BgColor = Color.white
-                                        answer4BgColor = Color.green
-                                    }
+                                .border(/*@START_MENU_TOKEN@*/Color.black/*@END_MENU_TOKEN@*/, width: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/)
+                                .background(Color.white)
+                        }
+                        
+                        if shuffledAnswers.count >= 4 {
+                            
+                            HStack() {
+                                VStack() {
+                                    
+                                    Text("1: \(shuffledAnswers[0])")
+                                        .multilineTextAlignment(.center)
+                                        .padding(.all, 2.0)
+                                        .border(/*@START_MENU_TOKEN@*/Color.black/*@END_MENU_TOKEN@*/, width: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/)
+                                        .background(answer1BgColor)
+                                        .onTapGesture {
+                                            selectedAnswer = shuffledAnswers[0]
+                                            answer1BgColor = Color.green
+                                            answer2BgColor = Color.white
+                                            answer3BgColor = Color.white
+                                            answer4BgColor = Color.white
+                                        }
+                                    Text("2: \(shuffledAnswers[1])")
+                                        .multilineTextAlignment(.center)
+                                        .padding(.all, 2.0)
+                                        .border(/*@START_MENU_TOKEN@*/Color.black/*@END_MENU_TOKEN@*/, width: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/)
+                                        .background(answer2BgColor)
+                                        .onTapGesture {
+                                            selectedAnswer = shuffledAnswers[1]
+                                            answer1BgColor = Color.white
+                                            answer2BgColor = Color.green
+                                            answer3BgColor = Color.white
+                                            answer4BgColor = Color.white
+                                        }
+                                }
+                                
+                                VStack() {
+                                    Text("3: \(shuffledAnswers[2])")
+                                        .multilineTextAlignment(.center)
+                                        .padding(.all, 2.0)
+                                        .border(/*@START_MENU_TOKEN@*/Color.black/*@END_MENU_TOKEN@*/, width: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/)
+                                        .background(answer3BgColor)
+                                        .onTapGesture {
+                                            selectedAnswer = shuffledAnswers[2]
+                                            answer1BgColor = Color.white
+                                            answer2BgColor = Color.white
+                                            answer3BgColor = Color.green
+                                            answer4BgColor = Color.white
+                                        }
+                                    Text("4: \(shuffledAnswers[3])")
+                                        .multilineTextAlignment(.center)
+                                        .padding(.all, 2.0)
+                                        .border(/*@START_MENU_TOKEN@*/Color.black/*@END_MENU_TOKEN@*/, width: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/)
+                                        .background(answer4BgColor)
+                                        .onTapGesture {
+                                            selectedAnswer = shuffledAnswers[3]
+                                            answer1BgColor = Color.white
+                                            answer2BgColor = Color.white
+                                            answer3BgColor = Color.white
+                                            answer4BgColor = Color.green
+                                        }
+                                }
                             }
                         }
+                        
                     }
                     
-                }
-                
-                if !hasAnswered {
-                    Button("Answer") {
-                        if selectedAnswer != nil {
-                            if selectedAnswer == questions[questionCount].correct_answer {
-                                correct = true
-                                correctAnswers += 1
-                            } else {
-                                correct = false
-                            }
-                            hasAnswered = true
+                    if !hasAnswered {
+                        Button("Answer") {
                             
-                        } else {
-                            print("Select an answer")
-                        }
-                        
-                    }
-                    .padding(.vertical, 4.0)
-                }
-                
-                Spacer()
-                
-                if hasAnswered {
-                    VStack {
-                        
-                        if correct! {
-                            Text("Correct!")
-                                .foregroundColor(Color.green)
-                            
-                            
-                        } else {
-                            Text("Wrong")
-                                .foregroundColor(Color.red)
-                        }
-                        
-                        if !endQuiz {
-                            
-                            Button("Next Question") {
+                            if selectedAnswer != nil {
+                                if selectedAnswer == questions[questionCount].correct_answer {
+                                    correct = true
+                                    correctAnswers += 1
+                                } else {
+                                    correct = false
+                                }
+                                hasAnswered = true
                                 
-                                nextQuestion()
+                            } else {
+                                print("Select an answer")
                             }
-                        } else {
-                            NavigationLink("See results", destination: ResultsView(correctAnswers: correctAnswers, questionAmount: questions.count))
+                            
+                        }
+                        .padding(.vertical, 4.0)
+                        .foregroundColor(Color.black)
+                    }
+                    
+                    Spacer()
+                    
+                    if hasAnswered {
+                        VStack {
+                            
+                            if correct! {
+                                Text("Correct!")
+                                    .fontWeight(.bold)
+                                    .foregroundColor(Color.green)
+                                    .font(.title)
+                                
+                            } else {
+                                Text("Wrong answer")
+                                    .fontWeight(.bold)
+                                    .foregroundColor(Color.red)
+                                    .font(.title)
+                            }
+                            
+                            if !endQuiz {
+                                
+                                Button("Next Question") {
+                                    
+                                    nextQuestion()
+                                }
+                                .foregroundColor(Color.black)
+                            } else {
+                                NavigationLink("See results", destination: ResultsView(correctAnswers: correctAnswers, questionAmount: questions.count))
+                                    .foregroundColor(Color.black)
+                            }
                         }
                     }
                 }
+                .padding(.vertical, 28.0)
+                
             }
-            
-            
-            .padding(.vertical, 28.0)
         }
         .navigationBarBackButtonHidden()
         .onAppear() {
@@ -353,7 +362,8 @@ struct QuizView: View {
     
     func nextQuestion() {
             
-        hasAnswered = false;
+        hasAnswered = false
+        selectedAnswer = nil
         answer1BgColor = Color.white
         answer2BgColor = Color.white
         answer3BgColor = Color.white
@@ -379,12 +389,18 @@ struct ResultsView: View {
    
     var body: some View {
         NavigationView {
-            VStack {
-                Spacer()
-                Text("Out of \(questionAmount) questions")
-                Text("You answered: \(correctAnswers) correct!")
-                Spacer()
-                NavigationLink("Back to menu", destination: ContentView())
+            
+            ZStack {
+                Color.blue
+                
+                VStack {
+                    Spacer()
+                    Text("Out of \(questionAmount) questions")
+                    Text("You answered: \(correctAnswers) correct!")
+                    Spacer()
+                    NavigationLink("Back to menu", destination: ContentView())
+                        .foregroundColor(Color.black)
+                }
             }
         }
         .navigationBarBackButtonHidden()
