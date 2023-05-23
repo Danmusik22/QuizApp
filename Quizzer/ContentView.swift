@@ -376,10 +376,6 @@ struct QuizView: View {
         if questionCount >= questions.count-1 {
             endQuiz = true
         }
-        
-        print("Antal spørgsmål: " ,questions.count)
-        print("Question count: " ,questionCount)
-        print("endQuiz: " ,endQuiz)
     }
 }
 
