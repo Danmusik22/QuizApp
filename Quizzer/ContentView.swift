@@ -380,6 +380,7 @@ struct ResultsView: View {
     var body: some View {
         NavigationView {
             VStack {
+                Spacer()
                 Text("Out of \(questionAmount) questions")
                 Text("You answered: \(correctAnswers) correct!")
                 Spacer()
@@ -387,6 +388,7 @@ struct ResultsView: View {
             }
         }
         .navigationBarBackButtonHidden()
+        .transition(.move(edge: .leading))
     }
 }
 
