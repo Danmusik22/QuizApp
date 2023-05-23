@@ -5,6 +5,16 @@
 //  Created by Dan Søndergaard on 22/05/2023.
 //
 
+
+/*
+ Jeg henter dataet ind med default encoding
+ Jeg er dog ikke kommet frem til nogen god måde
+ som jeg selv kunne forstå, til at decode det på.
+ Derfor er der nogle gange nogle mærkelige
+ tegn i teksten i programmet
+ */
+
+
 import SwiftUI
 
 enum Difficulty: String, CaseIterable{
