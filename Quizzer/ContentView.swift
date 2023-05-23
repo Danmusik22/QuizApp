@@ -135,7 +135,7 @@ enum Difficulty: String, CaseIterable{
                 }
             }
             .navigationBarBackButtonHidden()
-            .navigationTitle("Duck")
+            .navigationTitle("Quizzer")
         }
         
         struct ContentView_Previews: PreviewProvider {
